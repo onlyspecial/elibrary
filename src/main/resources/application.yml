@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    # 本地 MySQL 5.7：127.0.0.1:3306 / root / 无密码
+    url: jdbc:mysql://127.0.0.1:3306/elibrary?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  # 本地 Redis：127.0.0.1:6379
+  redis:
+    host: 127.0.0.1
+    port: 6379
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+library:
+  super-admin:
+    username: superadmin
+    password: ChangeMe123!
+  pdf:
+    storage-dir: ./uploads/pdf
+    max-size-mb: 50
+
+logging:
+  level:
+    com.elibrary: INFO

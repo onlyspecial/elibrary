@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:elibrary;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  autoconfigure:
+    exclude: []
+
+library:
+  super-admin:
+    username: testsuper
+    password: test-pass
+  pdf:
+    storage-dir: ${java.io.tmpdir}/elibrary-test-pdf
+    max-size-mb: 5

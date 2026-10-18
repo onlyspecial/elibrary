@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elibrary.user.UserMapper">
+  <resultMap id="UserMap" type="com.elibrary.user.User">
+    <id property="id" column="id"/>
+    <result property="username" column="username"/>
+    <result property="passwordHash" column="password_hash"/>
+    <result property="role" column="role"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="updatedAt" column="updated_at"/>
+  </resultMap>
+
+  <select id="findByUsername" resultMap="UserMap">
+    SELECT * FROM `user` WHERE username = #{username}
+  </select>
+  <select id="findById" resultMap="UserMap">
+    SELECT * FROM `user` WHERE id = #{id}
+  </select>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO `user` (username, password_hash, role)
+    VALUES (#{username}, #{passwordHash}, #{role})
+  </insert>
+  <update id="updateRole">
+    UPDATE `user` SET role = #{role} WHERE id = #{id}
+  </update>
+  <select id="listAll" resultMap="UserMap">
+    SELECT * FROM `user` ORDER BY id ASC
+  </select>
+  <select id="listNonSuperAdmins" resultMap="UserMap">
+    SELECT * FROM `user` WHERE role &lt;&gt; 'SUPER_ADMIN' ORDER BY id ASC
+  </select>
+</mapper>

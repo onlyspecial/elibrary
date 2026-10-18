@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="${pageTitle} ?: '电子书'">电子书</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<header class="site-header">
+  <div class="brand"><a th:href="@{/}">电子图书馆</a></div>
+  <nav class="nav">
+    <a th:href="@{/}">首页</a>
+    <a th:href="@{/physical}">实体馆藏</a>
+    <a th:href="@{/digital}">电子书</a>
+    <a th:href="@{/my-borrows}" sec:authorize="isAuthenticated()">我的借阅</a>
+    <a th:href="@{/admin/physical}" sec:authorize="hasAnyRole('ADMIN','SUPER_ADMIN')">实体管理</a>
+    <a th:href="@{/admin/digital}" sec:authorize="hasAnyRole('ADMIN','SUPER_ADMIN')">电子书管理</a>
+    <a th:href="@{/admin/users}" sec:authorize="hasRole('SUPER_ADMIN')">用户管理</a>
+    <span sec:authorize="isAuthenticated()" class="user-info" sec:authentication="name"></span>
+    <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" class="inline-form">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit">退出</button>
+    </form>
+    <a th:href="@{/login}" sec:authorize="!isAuthenticated()">登录</a>
+    <a th:href="@{/register}" sec:authorize="!isAuthenticated()">注册</a>
+  </nav>
+</header>
+
+<main class="content">
+  <div th:if="${message}" class="flash ok" th:text="${message}"></div>
+  <div th:if="${error}" class="flash err" th:text="${error}"></div>
+
+  <h1>电子书</h1>
+
+  <form th:action="@{/digital}" method="get" class="search-form">
+    <label>
+      搜索
+      <input type="text" name="keyword" th:value="${keyword}" placeholder="书名或作者"/>
+    </label>
+    <button type="submit">搜索</button>
+  </form>
+
+  <p th:if="${searchError}" class="flash err" th:text="${searchError}">请输入有效搜索信息</p>
+  <p th:if="${awaitingSearch}" class="hint">请输入书名或作者后点击搜索</p>
+  <p th:if="${searchError == null and awaitingSearch == null and #lists.isEmpty(pageResult.items)}"
+     class="hint">暂无匹配电子书</p>
+
+  <table class="data-table" th:if="${!#lists.isEmpty(pageResult.items)}">
+    <thead>
+    <tr>
+      <th>标题</th>
+      <th>作者</th>
+      <th>类型</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item : ${pageResult.items}">
+      <td>
+        <a th:href="@{/digital/{id}(id=${item.id})}" th:text="${item.title}">标题</a>
+      </td>
+      <td th:text="${item.author}">作者</td>
+      <td th:text="${item.contentType}">BOOK</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <nav class="pagination" th:if="${pageResult.totalPages > 1}">
+    <a th:if="${pageResult.page > 1}"
+       th:href="@{/digital(keyword=${keyword}, page=${pageResult.page - 1})}">上一页</a>
+    <span th:text="'第 ' + ${pageResult.page} + ' / ' + ${pageResult.totalPages} + ' 页'">第 1 页</span>
+    <a th:if="${pageResult.page < pageResult.totalPages}"
+       th:href="@{/digital(keyword=${keyword}, page=${pageResult.page + 1})}">下一页</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <p>电子图书馆服务</p>
+</footer>
+</body>
+</html>

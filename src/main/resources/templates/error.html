@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>出错了 - 电子图书馆</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<header class="site-header">
+  <div class="brand"><a th:href="@{/}">电子图书馆</a></div>
+</header>
+<main class="content narrow">
+  <h1>出错了</h1>
+  <div th:if="${error}" class="flash err" th:text="${error}"></div>
+  <div th:if="${message}" class="flash err" th:text="${message}"></div>
+  <p th:unless="${error} or ${message}">网络异常，请稍后重试</p>
+  <p><a th:href="@{/}">返回首页</a></p>
+</main>
+</body>
+</html>

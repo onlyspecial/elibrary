@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elibrary.physical.PhysicalWorkMapper">
+
+  <resultMap id="PhysicalWorkMap" type="com.elibrary.physical.PhysicalWork">
+    <id property="id" column="id"/>
+    <result property="title" column="title"/>
+    <result property="author" column="author"/>
+    <result property="contentType" column="content_type"/>
+    <result property="description" column="description"/>
+    <result property="isbnOrIssn" column="isbn_or_issn"/>
+    <result property="deleted" column="deleted"/>
+    <result property="createdBy" column="created_by"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="updatedAt" column="updated_at"/>
+    <result property="availableCount" column="available_count"/>
+    <result property="totalCount" column="total_count"/>
+  </resultMap>
+
+  <sql id="availabilitySubqueries">
+    (SELECT COUNT(*) FROM physical_copy c
+      WHERE c.work_id = w.id AND c.deleted = 0) AS total_count,
+    (SELECT COUNT(*) FROM physical_copy c
+      WHERE c.work_id = w.id AND c.deleted = 0 AND c.status = 'AVAILABLE') AS available_count
+  </sql>
+
+  <sql id="keywordFilter">
+    (#{keyword} IS NULL OR #{keyword} = ''
+         OR w.title LIKE CONCAT('%', #{keyword}, '%')
+         OR w.author LIKE CONCAT('%', #{keyword}, '%'))
+  </sql>
+
+  <sql id="activeKeywordFilter">
+    w.deleted = 0
+    AND
+    <include refid="keywordFilter"/>
+  </sql>
+
+  <select id="findActiveById" resultMap="PhysicalWorkMap">
+    SELECT w.*,
+      <include refid="availabilitySubqueries"/>
+    FROM physical_work w
+    WHERE w.id = #{id} AND w.deleted = 0
+  </select>
+
+  <select id="findById" resultMap="PhysicalWorkMap">
+    SELECT w.*,
+      <include refid="availabilitySubqueries"/>
+    FROM physical_work w
+    WHERE w.id = #{id}
+  </select>
+
+  <select id="searchActive" resultMap="PhysicalWorkMap">
+    SELECT w.*,
+      <include refid="availabilitySubqueries"/>
+    FROM physical_work w
+    WHERE
+      <include refid="activeKeywordFilter"/>
+    ORDER BY w.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="countActive" resultType="long">
+    SELECT COUNT(*)
+    FROM physical_work w
+    WHERE
+      <include refid="activeKeywordFilter"/>
+  </select>
+
+  <select id="searchAll" resultMap="PhysicalWorkMap">
+    SELECT w.*,
+      <include refid="availabilitySubqueries"/>
+    FROM physical_work w
+    WHERE
+      <include refid="keywordFilter"/>
+    ORDER BY w.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="countAll" resultType="long">
+    SELECT COUNT(*)
+    FROM physical_work w
+    WHERE
+      <include refid="keywordFilter"/>
+  </select>
+
+  <select id="findActiveByTitleAndAuthor" resultMap="PhysicalWorkMap">
+    SELECT w.*,
+      <include refid="availabilitySubqueries"/>
+    FROM physical_work w
+    WHERE w.deleted = 0
+      AND w.title = #{title}
+      AND w.author = #{author}
+    LIMIT 1
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO physical_work (
+      title, author, content_type, description, isbn_or_issn, deleted, created_by
+    ) VALUES (
+      #{title}, #{author}, #{contentType}, #{description}, #{isbnOrIssn}, #{deleted}, #{createdBy}
+    )
+  </insert>
+
+  <update id="update">
+    UPDATE physical_work
+    SET title = #{title},
+        author = #{author},
+        content_type = #{contentType},
+        description = #{description},
+        isbn_or_issn = #{isbnOrIssn},
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = #{id}
+  </update>
+
+  <update id="softDelete">
+    UPDATE physical_work
+    SET deleted = 1,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = #{id}
+  </update>
+</mapper>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>注册 - 电子图书馆</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<header class="site-header">
+  <div class="brand"><a th:href="@{/}">电子图书馆</a></div>
+  <nav class="nav">
+    <a th:href="@{/}">首页</a>
+    <a th:href="@{/login}">登录</a>
+  </nav>
+</header>
+
+<main class="content narrow">
+  <h1>注册</h1>
+
+  <form th:action="@{/register}" th:object="${form}" method="post" class="auth-form">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <label>
+      用户名（3–64 字符）
+      <input type="text" th:field="*{username}" autocomplete="username"/>
+    </label>
+    <p class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+    <label>
+      密码（6–64 字符）
+      <input type="password" th:field="*{password}" autocomplete="new-password"/>
+    </label>
+    <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+    <button type="submit">注册</button>
+  </form>
+  <p class="hint">已有账号？<a th:href="@{/login}">去登录</a></p>
+</main>
+
+<footer class="site-footer">
+  <p>电子图书馆服务</p>
+</footer>
+</body>
+</html>

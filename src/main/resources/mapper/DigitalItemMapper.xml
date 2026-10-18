@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elibrary.digital.DigitalItemMapper">
+
+  <resultMap id="DigitalItemMap" type="com.elibrary.digital.DigitalItem">
+    <id property="id" column="id"/>
+    <result property="title" column="title"/>
+    <result property="author" column="author"/>
+    <result property="contentType" column="content_type"/>
+    <result property="description" column="description"/>
+    <result property="isbnOrIssn" column="isbn_or_issn"/>
+    <result property="pdfPath" column="pdf_path"/>
+    <result property="pdfOriginalName" column="pdf_original_name"/>
+    <result property="deleted" column="deleted"/>
+    <result property="createdBy" column="created_by"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="updatedAt" column="updated_at"/>
+  </resultMap>
+
+  <sql id="keywordFilter">
+    (#{keyword} IS NULL OR #{keyword} = ''
+         OR d.title LIKE CONCAT('%', #{keyword}, '%')
+         OR d.author LIKE CONCAT('%', #{keyword}, '%'))
+  </sql>
+
+  <sql id="activeKeywordFilter">
+    d.deleted = 0
+    AND
+    <include refid="keywordFilter"/>
+  </sql>
+
+  <select id="findActiveById" resultMap="DigitalItemMap">
+    SELECT d.*
+    FROM digital_item d
+    WHERE d.id = #{id} AND d.deleted = 0
+  </select>
+
+  <select id="findById" resultMap="DigitalItemMap">
+    SELECT d.*
+    FROM digital_item d
+    WHERE d.id = #{id}
+  </select>
+
+  <select id="searchActive" resultMap="DigitalItemMap">
+    SELECT d.*
+    FROM digital_item d
+    WHERE
+      <include refid="activeKeywordFilter"/>
+    ORDER BY d.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="countActive" resultType="long">
+    SELECT COUNT(*)
+    FROM digital_item d
+    WHERE
+      <include refid="activeKeywordFilter"/>
+  </select>
+
+  <select id="searchAll" resultMap="DigitalItemMap">
+    SELECT d.*
+    FROM digital_item d
+    WHERE
+      <include refid="keywordFilter"/>
+    ORDER BY d.id DESC
+    LIMIT #{limit} OFFSET #{offset}
+  </select>
+
+  <select id="countAll" resultType="long">
+    SELECT COUNT(*)
+    FROM digital_item d
+    WHERE
+      <include refid="keywordFilter"/>
+  </select>
+
+  <select id="findActiveByTitleAndAuthor" resultMap="DigitalItemMap">
+    SELECT d.*
+    FROM digital_item d
+    WHERE d.deleted = 0
+      AND d.title = #{title}
+      AND d.author = #{author}
+    LIMIT 1
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO digital_item (
+      title, author, content_type, description, isbn_or_issn,
+      pdf_path, pdf_original_name, deleted, created_by
+    ) VALUES (
+      #{title}, #{author}, #{contentType}, #{description}, #{isbnOrIssn},
+      #{pdfPath}, #{pdfOriginalName}, #{deleted}, #{createdBy}
+    )
+  </insert>
+
+  <update id="update">
+    UPDATE digital_item
+    SET title = #{title},
+        author = #{author},
+        content_type = #{contentType},
+        description = #{description},
+        isbn_or_issn = #{isbnOrIssn},
+        pdf_path = #{pdfPath},
+        pdf_original_name = #{pdfOriginalName},
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = #{id}
+  </update>
+
+  <update id="softDelete">
+    UPDATE digital_item
+    SET deleted = 1,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = #{id}
+  </update>
+</mapper>

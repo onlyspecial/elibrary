@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.elibrary.borrow.BorrowRecordMapper">
+
+  <resultMap id="BorrowRecordMap" type="com.elibrary.borrow.BorrowRecord">
+    <id property="id" column="id"/>
+    <result property="userId" column="user_id"/>
+    <result property="physicalWorkId" column="physical_work_id"/>
+    <result property="physicalCopyId" column="physical_copy_id"/>
+    <result property="borrowedAt" column="borrowed_at"/>
+    <result property="returnedAt" column="returned_at"/>
+  </resultMap>
+
+  <resultMap id="BorrowRecordViewMap" type="com.elibrary.borrow.BorrowRecordView">
+    <id property="id" column="id"/>
+    <result property="userId" column="user_id"/>
+    <result property="physicalCopyId" column="physical_copy_id"/>
+    <result property="borrowedAt" column="borrowed_at"/>
+    <result property="returnedAt" column="returned_at"/>
+    <result property="title" column="title"/>
+    <result property="copyNo" column="copy_no"/>
+    <result property="copyDeleted" column="copy_deleted"/>
+    <result property="workDeleted" column="work_deleted"/>
+  </resultMap>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO borrow_record (user_id, physical_work_id, physical_copy_id, borrowed_at, returned_at)
+    VALUES (#{userId}, #{physicalWorkId}, #{physicalCopyId}, #{borrowedAt}, #{returnedAt})
+  </insert>
+
+  <select id="findById" resultMap="BorrowRecordMap">
+    SELECT * FROM borrow_record WHERE id = #{id}
+  </select>
+
+  <update id="markReturned">
+    UPDATE borrow_record
+    SET returned_at = #{returnedAt}
+    WHERE id = #{id}
+  </update>
+
+  <!-- Include open records even if copy/work soft-deleted; also recent returned -->
+  <select id="listOpenAndRecentByUserId" resultMap="BorrowRecordViewMap">
+    SELECT
+      br.id,
+      br.user_id,
+      br.physical_copy_id,
+      br.borrowed_at,
+      br.returned_at,
+      w.title AS title,
+      c.copy_no AS copy_no,
+      IFNULL(c.deleted, 0) AS copy_deleted,
+      IFNULL(w.deleted, 0) AS work_deleted
+    FROM borrow_record br
+    LEFT JOIN physical_copy c ON c.id = br.physical_copy_id
+    LEFT JOIN physical_work w ON w.id = br.physical_work_id
+    WHERE br.user_id = #{userId}
+      AND (br.returned_at IS NULL
+           OR br.returned_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY))
+    ORDER BY
+      CASE WHEN br.returned_at IS NULL THEN 0 ELSE 1 END ASC,
+      br.borrowed_at DESC
+  </select>
+</mapper>

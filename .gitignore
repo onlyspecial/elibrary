@@ -1,0 +1,6 @@
+target/
+uploads/
+dump.rdb
+.idea/
+*.iml
+.DS_Store
